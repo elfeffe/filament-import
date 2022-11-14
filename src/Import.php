@@ -96,6 +96,7 @@ class Import
     public function getSpreadsheetData(): Collection
     {
         return $this->toCollection(new UploadedFile(Storage::disk($this->disk)->path($this->spreadsheet), $this->spreadsheet))
+            ->filter()
             ->first()
             ->skip((int) $this->shouldSkipHeader);
     }
@@ -135,6 +136,8 @@ class Import
         $skipped = 0;
         DB::transaction(function () use (&$importSuccess, &$skipped) {
             foreach ($this->getSpreadsheetData() as $line => $row) {
+
+
                 $prepareInsert = collect([]);
                 $rules = [];
                 $validationMessages = [];
