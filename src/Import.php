@@ -2,6 +2,7 @@
 
 namespace Konnco\FilamentImport;
 
+use Closure;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
@@ -21,8 +22,6 @@ class Import
     use HasActionMutation;
     use HasActionUniqueField;
 
-    protected bool $update = true;
-
     protected string $spreadsheet;
 
     protected Collection $fields;
@@ -36,6 +35,8 @@ class Import
     protected bool $shouldSkipHeader = false;
 
     protected bool $shouldMassCreate = true;
+
+    protected ?Closure $handleRecordCreation = null;
 
     public static function make(string $spreadsheetFilePath): self
     {
@@ -71,14 +72,6 @@ class Import
         return $this;
     }
 
-
-    public function update(bool $update): static
-    {
-        $this->update = $update;
-
-        return $this;
-    }
-
     public function disk($disk = 'local'): static
     {
         $this->disk = $disk;
@@ -104,7 +97,7 @@ class Import
     {
         return $this->toCollection(new UploadedFile(Storage::disk($this->disk)->path($this->spreadsheet), $this->spreadsheet))
             ->first()
-            ->skip((int)$this->shouldSkipHeader);
+            ->skip((int) $this->shouldSkipHeader);
     }
 
     public function validated($data, $rules, $customMessages, $line)
@@ -129,6 +122,12 @@ class Import
         return $data;
     }
 
+    public function handleRecordCreation(Closure|null $closure): static
+    {
+        $this->handleRecordCreation = $closure;
+
+        return $this;
+    }
 
     public function execute()
     {
@@ -141,14 +140,12 @@ class Import
                 $validationMessages = [];
 
                 foreach (Arr::dot($this->fields) as $key => $value) {
-
                     $field = $this->formSchemas[$key];
-
                     $fieldValue = $value;
 
                     if ($field instanceof ImportField) {
                         // check if field is optional
-                        if (!$field->isRequired() && blank(@$row[$value])) {
+                        if (! $field->isRequired() && blank(@$row[$value])) {
                             continue;
                         }
 
@@ -159,13 +156,12 @@ class Import
                         }
                     }
 
-
                     $prepareInsert[$key] = $fieldValue;
                 }
 
                 $prepareInsert = $this->validated(data: Arr::undot($prepareInsert), rules: $rules, customMessages: $validationMessages, line: $line + 1);
 
-                if (!$prepareInsert) {
+                if (! $prepareInsert) {
                     DB::rollBack();
                     $importSuccess = false;
 
@@ -190,48 +186,19 @@ class Import
                     }
                 }
 
-                if (!$this->shouldMassCreate) {
-
-                    if($this->update)
-                    {
-                        if(!$prepareInsert['id'])
-                        {
-                            continue;
-                        }
-
-                        $model = (new $this->model)->find($prepareInsert['id']);
-
-                        if($model)
-                        {
-                            $model->fill($prepareInsert);
-                            $model->save();
-
-                        } else {
-                            Notification::make()
-                                ->danger()
-                                ->title('Model with ID ' . $prepareInsert['id'] . ' not found.')
-                                ->persistent()
-                                ->send();
-                        }
-
-                    } else
-                    {
+                if (! $this->handleRecordCreation) {
+                    if (! $this->shouldMassCreate) {
                         $model = (new $this->model)->fill($prepareInsert);
-
                         $model = tap($model, function ($instance) {
                             $instance->save();
                         });
-                    }
-
-                } else {
-                    if($this->update)
-                    {
-                        $model = $this->model::update(['id' => $prepareInsert['id']], $prepareInsert);
                     } else {
                         $model = $this->model::create($prepareInsert);
                     }
+                } else {
+                    $closure = $this->handleRecordCreation;
+                    $model = $closure($prepareInsert);
                 }
-
 
                 if($model)
                 {
@@ -249,7 +216,7 @@ class Import
                 ->send();
         }
 
-        if (!$importSuccess) {
+        if (! $importSuccess) {
             Notification::make()
                 ->danger()
                 ->title(trans('filament-import::actions.import_failed_title'))
