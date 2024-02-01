@@ -350,7 +350,7 @@
                 "php": "^8.0"
             },
             "require-dev": {
-                "livewire/livewire": "^2.3",
+                "livewire/livewire": "^3.0.0",
                 "orchestra/testbench": "^6.2|^7.0",
                 "phpunit/phpunit": "^9.4",
                 "symplify/monorepo-builder": "^9.0"
@@ -847,7 +847,7 @@
                 "illuminate/session": "^8.6|^9.0",
                 "illuminate/support": "^8.6|^9.0",
                 "illuminate/view": "^8.6|^9.0",
-                "livewire/livewire": "^2.10.7",
+                "livewire/livewire": "^3.0.0",
                 "php": "^8.0",
                 "ryangjchandler/blade-capture-directive": "^0.2",
                 "spatie/laravel-package-tools": "^1.9"
@@ -906,7 +906,7 @@
                 "illuminate/support": "^8.6|^9.0",
                 "illuminate/validation": "^8.6|^9.0",
                 "illuminate/view": "^8.6|^9.0",
-                "livewire/livewire": "^2.10.7",
+                "livewire/livewire": "^3.0.0",
                 "php": "^8.0",
                 "spatie/laravel-package-tools": "^1.9"
             },
@@ -959,7 +959,7 @@
                 "illuminate/filesystem": "^8.6|^9.0",
                 "illuminate/notifications": "^8.6|^9.0",
                 "illuminate/support": "^8.6|^9.0",
-                "livewire/livewire": "^2.10.7",
+                "livewire/livewire": "^3.0.0",
                 "php": "^8.0",
                 "spatie/laravel-package-tools": "^1.9"
             },
@@ -1064,7 +1064,7 @@
                 "illuminate/filesystem": "^8.6|^9.0",
                 "illuminate/support": "^8.6|^9.0",
                 "illuminate/view": "^8.6|^9.0",
-                "livewire/livewire": "^2.10.7",
+                "livewire/livewire": "^3.0.0",
                 "php": "^8.0",
                 "spatie/invade": "^1.0",
                 "spatie/laravel-package-tools": "^1.9"
